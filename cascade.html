@@ -18,67 +18,63 @@
       }
 
       .amount {
-        margin-left: auto;        
+        margin-left: auto;
       }
-      
+
       .balance {
-        font-style: italic;        
+        font-style: italic;
       }
       .spacer {
         padding-right: 65vw;
       }
 
       .space-btm {
-        padding-bottom: .5em;
+        padding-bottom: 0.5em;
       }
 
       .total {
         font-weight: bold;
       }
-      
+
       .totalLine {
         border-top: 1px solid black;
-        font-size: .5em;
+        font-size: 0.5em;
       }
     </style>
   </head>
   <body>
-    <div id="app">      
+    <div id="app">
       <h2>All Transactions:</h2>
       <ul>
-        <li class="space-btm balance">Starting balance :
-          <span class="amount">{{(Statement.Transactions[0].AvailableBalance).toFixed(2)}}</span><span class="spacer"></span>
+        <li class="space-btm balance">
+          Starting balance :
+          <span class="amount"
+            >{{(Statement.Transactions[0].AvailableBalance).toFixed(2)}}</span
+          ><span class="spacer"></span>
         </li>
         <li v-for="line in Statement.Transactions" :key="MerchantName">
-          {{line.MerchantName}} ({{line.TransactionDate}}) :
-          <span class="amount">{{line.Amount}}</span><span class="spacer"></span>
+          {{isPending(line.TransactionDate)}} {{line.MerchantName}}
+          ({{line.TransactionDate}}) :
+          <span class="amount">{{line.Amount}}</span
+          ><span class="spacer"></span>
         </li>
         <li class="totalLine">&nbsp;</li>
         <li class="total">
           Total Transactions:
-          <span class="amount">{{totalTransactions}}</span><span class="spacer"></span>
+          <span class="amount">{{totalTransactions}}</span
+          ><span class="spacer"></span>
         </li>
         <li class="balance">
-          Current Remaining Balance: <span class="amount">{{remainingBalance}}</span><span class="spacer"></span>
+          Remaining Balance:
+          <span class="amount">{{remainingBalance}}</span
+          ><span class="spacer"></span>
         </li>
       </ul>
-      <h3>Pending Transactions:</h3>      
-      <ul>
-        <li v-for="line in Statement.NotSettled" :key="MerchantName">
-          {{line.MerchantName}} ({{line.TransactionDate}}) :
-          <span class="amount">{{line.Amount}}</span><span class="spacer"></span>
-        </li>
-        <li class="totalLine">&nbsp;</li>
-        <li class="total">
-          Total Pending:
-          <span class="amount">{{totalPending}}</span><span class="spacer"></span>
-        </li>
-      </ul>
-      
+      <h3>*Pending Transactions</h3>      
     </div>
     <script type="text/javascript">
       // I have plenty of React experience, but limited Vue experience.
-      // The following code represents this.
+      // The following may show this.
       let vm = new Vue({
         el: '#app',
 
@@ -160,6 +156,18 @@
             const end_bal = start_bal - amount;
             return end_bal;
           },
+
+          isPending(xDate) {
+            // idea here is to cycle through the pending transactions looking
+            // for a match. If there are two transactions with the same
+            // timestamp, it must be pending.
+            let pending = '';
+            this.Statement.NotSettled.forEach((e) => {
+              console.log('datetest: xDate', xDate, 'e.date', e.TransactionDate);
+              if (e.TransactionDate.toString() == xDate.toString()) pending = '*';              
+            });
+            return pending;
+          },
         },
 
         computed: {
@@ -180,7 +188,7 @@
           },
 
           // Normally I would never repeat code, but as I'm not familiar with
-          // Vue's referencing methods here, I've made an exception with the 
+          // Vue's referencing methods here, I've made an exception with the
           // methods below ><.
           remainingBalance() {
             let sum = 0;
@@ -191,20 +199,6 @@
               this.Statement.Transactions[0].AvailableBalance - sum
             ).toFixed(2);
           },
-
-          allRemainingBalance() {
-            let notpending = 0;
-            let pending = 0;
-            this.Statement.Transactions.forEach((e) => {
-              notpending += e.Amount;
-            });
-
-            this.Statement.NotSettled.forEach((e) => {
-              pending += e.Amount;
-            });
-            return (this.Statement.Transactions[0].AvailableBalance - (pending + notpending)).toFixed(2);
-          },
-
         },
       });
     </script>
